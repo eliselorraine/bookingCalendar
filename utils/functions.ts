@@ -67,6 +67,22 @@ const calculateTimeSlot = ({ starts, ends }: TimeSlot): number => {
   return minutes;
 };
 
+const createSlot = (arr: TimeSlot[], { booking }: RequestedBooking) => {
+    let availSlots: TimeSlot[] = []; 
+    arr.map((timeSlot) => {
+        let ts = new Date(timeSlot.starts)
+        const availMs = ts.getTime()
+        const slotMs = availMs + (booking.durationInMinutes * 60000)
+        const endStamp = new Date(slotMs)
+        const newSlot = {
+            starts: timeSlot.starts,
+            ends: endStamp.toISOString(),
+        }
+        availSlots.push(newSlot)
+    })
+    return availSlots; 
+}
+
 // Look through the list of photographers to get their list of availabilities
 const pgAvail = (
   pg: Photographer,
@@ -80,46 +96,75 @@ const pgAvail = (
     }
     return;
   });
-
-  return availArr;
+  const availSlot = createSlot(availArr, { booking }); 
+  return availSlot;
 };
+
+const sampleArr = pgAvail(examplePhotographer, exampleBooking)
+
+
+
+// Create a list of time slots equivalent to the duration of requested booking
+
+console.log(pgAvail(examplePhotographer, exampleBooking))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Create a true availabiltiy value considering any bookings
 // Find the availability time slot that includes the booking
 // Split that time slot into two time slots that exclude the booking time
-const pgBookings = (pg: Photographer): TimeSlot[] => {
-  let bookingStart = "";
-  let bookingEnd = "";
-  let availStart = "";
-  let availEnd = "";
-
-  pg.bookings?.forEach((b) => {
-    bookingStart = b.starts;
-    bookingEnd = b.ends;
-  });
-
-  pg.availabilities?.forEach((a) => {
-    availStart = a.starts;
-    availEnd = a.ends;
-  });
-
-  const unbookedAvailTimes: TimeSlot[] = [
-    {
-      starts: availStart,
-      ends: bookingStart,
-    },
-    {
-      starts: bookingEnd,
-      ends: availEnd,
-    },
-  ];
-
-  pg.availabilities = unbookedAvailTimes;
-  console.log(pgAvail(pg, exampleBooking));
-
-  return unbookedAvailTimes;
-};
 
 // what if they have more than one booking? How do we create the new time slots?
 
-console.log(pgBookings(examplePhotographer));
+// const pgBookings = (pg: Photographer): TimeSlot[] => {
+//   let bookingStart = "";
+//   let bookingEnd = "";
+//   let availStart = "";
+//   let availEnd = "";
+
+//   pg.bookings?.forEach((b) => {
+//     bookingStart = b.starts;
+//     bookingEnd = b.ends;
+//   });
+
+//   pg.availabilities?.forEach((a) => {
+//     availStart = a.starts;
+//     availEnd = a.ends;
+//   });
+
+//   const unbookedAvailTimes: TimeSlot[] = [
+//     {
+//       starts: availStart,
+//       ends: bookingStart,
+//     },
+//     {
+//       starts: bookingEnd,
+//       ends: availEnd,
+//     },
+//   ];
+
+//   pg.availabilities = unbookedAvailTimes;
+//   console.log(pgAvail(pg, exampleBooking));
+
+//   return unbookedAvailTimes;
+// };
