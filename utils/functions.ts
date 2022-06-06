@@ -1,34 +1,12 @@
 import { TimeSlot, Photographer, RequestedBooking } from "../types";
-import photographers from "../photographers.json";
+import photographersData from "../photographers.json";
 
-const pgList = photographers.photographers;
+const pgList = photographersData.photographers;
 
 const exampleBooking = {
   booking: {
     durationInMinutes: 90,
   },
-};
-
-const examplePhotographer = {
-  id: "2",
-  name: "Jens Mills",
-  availabilities: [
-    {
-      starts: "2020-11-25T08:00:00.000Z",
-      ends: "2020-11-25T09:00:00.000Z",
-    },
-    {
-      starts: "2020-11-25T13:00:00.000Z",
-      ends: "2020-11-25T16:00:00.000Z",
-    },
-  ],
-  bookings: [
-    {
-      id: "2",
-      starts: "2020-11-25T15:00:00.000Z",
-      ends: "2020-11-25T16:00:00.000Z",
-    },
-  ],
 };
 
 // const exampleResponse = [
@@ -53,11 +31,6 @@ const examplePhotographer = {
 //     },
 //   },
 // ];
-
-const exampleTimeSlot = {
-  starts: "2020-11-25T09:30:00.000Z",
-  ends: "2020-11-25T11:00:00.000Z",
-};
 
 const calculateTimeSlot = ({ starts, ends }: TimeSlot): number => {
   const startDate = new Date(starts);
@@ -87,8 +60,9 @@ const createSlot = (arr: TimeSlot[], { booking }: RequestedBooking) => {
 const pgAvail = (
   pg: Photographer,
   { booking }: RequestedBooking
-): TimeSlot[] => {
+) => {
   let availArr: TimeSlot[] = [];
+  // Checks for availability greater than or equal to the duration of requested booking
   pg.availabilities?.forEach((avail) => {
     let availMin = calculateTimeSlot(avail);
     if (availMin >= booking.durationInMinutes) {
@@ -96,39 +70,56 @@ const pgAvail = (
     }
     return;
   });
-  const availSlot = createSlot(availArr, { booking });
-  if (availSlot.length > 0) {
-    const timeSlot = availSlot[0];
-    console.log(checkForConflicts(pg, timeSlot, { booking }));
+  let availSlot = createSlot(availArr, { booking });
+  const timeSlot = availSlot[0];
+  availSlot = checkForConflicts(pg, availSlot, timeSlot, { booking });
+  const response = {
+      photographer: {
+          id: pg.id,
+          name: pg.name, 
+      },
+      timeSlot: availSlot[0],
   }
-  return availSlot;
+  return response;
 };
 
 const checkForConflicts = (
   pg: Photographer,
+  availArr: TimeSlot[],
   availableSlot: any,
   { booking }: RequestedBooking
 ) => {
   const bookingsArr = pg.bookings;
+  let adjustedAvailArr: TimeSlot[] = [];
   bookingsArr?.forEach((b) => {
     // look at the booking and see if it conflicts with the available Slot
     const startsMs = new Date(availableSlot.starts).getTime();
     const endsMs = new Date(availableSlot.ends).getTime();
     const bookingStartMs = new Date(b.starts).getTime();
     if (bookingStartMs >= startsMs && bookingStartMs < endsMs) {
-      console.log("Conflict");
+      // Create a new time slot with the start time of the booking end
+      let newEndMs = new Date(b.ends).getTime();
+      newEndMs += booking.durationInMinutes * 60000;
+      const newEnd = new Date(newEndMs).toISOString();
+      const newAvailSlot = {
+        starts: b.ends,
+        ends: newEnd,
+      };
+      adjustedAvailArr.push(newAvailSlot);
+      return adjustedAvailArr;
     } else {
-      console.log("No conflict");
+      return (adjustedAvailArr = [...availArr]);
     }
   });
-  return true;
+  return adjustedAvailArr;
 };
 
-// Create a list of time slots equivalent to the duration of requested booking
-console.log(pgAvail(examplePhotographer, exampleBooking));
+const response = pgList.map((p) => pgAvail(p, exampleBooking)); 
+console.log(response)
 
+// console.log(pgAvail(examplePhotographerOne, exampleBooking));
+
+// Create a list of time slots equivalent to the duration of requested booking
 // Create a true availabiltiy value considering any bookings
 // Find the availability time slot that includes the booking
 // Split that time slot into two time slots that exclude the booking time
-
-// what if they have more than one booking? How do we create the new time slots?
