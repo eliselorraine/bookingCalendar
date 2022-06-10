@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest ./test.ts",
+    "test": "jest ./utils/index.test.ts",
     "start": "npx ts-node index.ts"
   },
   "author": "",
