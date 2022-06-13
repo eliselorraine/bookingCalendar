@@ -9,7 +9,6 @@ const exampleBooking = {
   },
 };
 
-
 const calculateTimeSlot = ({ starts, ends }: TimeSlot): number => {
   const startDate = new Date(starts);
   const endDate = new Date(ends);

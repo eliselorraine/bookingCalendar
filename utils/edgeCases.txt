@@ -1,3 +1,0 @@
-What if the checkConflict function creates a new slot that extends past the original availability? 
-What happens when there is more than one booking? 
-Right now it is returning first available, but not on purpose. How can we make it on purpose?  

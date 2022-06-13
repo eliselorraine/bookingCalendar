@@ -46,10 +46,7 @@ const createTimeSlot = (slot: TimeSlot, min: number): TimeSlot => {
 };
 
 // Function that takes a photographer and returns their earliest available time slot
-export const earliestSlot = (
-  pg: Photographer,
-  req: RequestedBooking
-) => {
+export const earliestSlot = (pg: Photographer, req: RequestedBooking) => {
   const availability = pg.availabilities;
   const bookings = pg.bookings;
   const duration = req.booking.durationInMinutes;
@@ -63,26 +60,29 @@ export const earliestSlot = (
     return;
   });
 
-  const bookingMs = bookings?.map((b) => getMs(b));
+//   const bookingMs = bookings?.map((b) => getMs(b));
   const earliestPossible = availableTimeSlots?.map((a) => {
-    let earliest = createTimeSlot(a, duration);
+    let earliest: TimeSlot = createTimeSlot(a, duration);
     // Loop through bookings to see if any conflict with earliest
     // If so, grab the booking that conflicts and create new timeSlot from end of booking
     if (bookings) {
-        bookings.forEach((b) => {
-            if (checkForConflict(earliest, b)) {
-                const ms = getMs(b)
-                const newStart = msToISO(ms.endMs)
-                const newEnd = msToISO(ms.endMs + duration * 60000)
-                earliest = {
-                    starts: newStart, 
-                    ends: newEnd
-                }
-            }
-            return earliest; 
-        })
+      bookings.forEach((b) => {
+        if (checkForConflict(earliest, b)) {
+          const ms = getMs(b);
+          const newStart = msToISO(ms.endMs);
+          const newEnd = msToISO(ms.endMs + duration * 60000);
+          earliest = {
+            starts: newStart,
+            ends: newEnd,
+          };
+        } 
+        return earliest;
+      });
+    } else if (checkForConflict(earliest, a)) {
+      const test = "Checking if the condition works";
+      return test;
     }
-    return earliest; 
+    return earliest;
   });
 
   // check for conflict in availability
@@ -96,41 +96,35 @@ const exampleBooking = {
   },
 };
 
-const popularPg = {
+const busyPg = {
   id: "1",
   name: "Otto Crawford",
   availabilities: [
     {
       starts: "2020-11-25T06:00:00.000Z",
-      ends: "2020-11-25T07:00:00.000Z",
+      ends: "2020-11-25T07:30:00.000Z",
     },
     {
-      starts: "2020-11-25T08:00:00.000Z",
-      ends: "2020-11-25T16:00:00.000Z",
+      starts: "2020-11-25T09:00:00.000Z",
+      ends: "2020-11-25T11:00:00.000Z",
+    },
+    {
+      starts: "2020-11-25T11:30:00.000Z",
+      ends: "2020-11-25T15:00:00.000Z",
     },
   ],
   bookings: [
     {
       id: "1",
-      starts: "2020-11-25T08:30:00.000Z",
-      ends: "2020-11-25T09:30:00.000Z",
+      starts: "2020-11-25T07:00:00.000Z",
+      ends: "2020-11-25T07:30:00.000Z",
     },
     {
       id: "1",
-      starts: "2020-11-25T09:30:00.000Z",
+      starts: "2020-11-25T10:00:00.000Z",
       ends: "2020-11-25T11:00:00.000Z",
     },
   ],
 };
 
-const testA = {
-  starts: "2020-11-25T08:00:00.000Z",
-  ends: "2020-11-25T16:00:00.000Z",
-};
-
-const testB = {
-  starts: "2020-11-25T16:30:00.000Z",
-  ends: "2020-11-25T17:30:00.000Z",
-};
-
-console.log('Here', earliestSlot(popularPg, exampleBooking));
+console.log("Here", earliestSlot(busyPg, exampleBooking));
