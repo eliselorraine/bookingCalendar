@@ -26,11 +26,30 @@ export const msToISO = (num: number): string => {
   return dateStr;
 };
 
+export const checkForConflict = (a: TimeSlot, b: TimeSlot): boolean => {
+  const msA = getMs(a);
+  const msB = getMs(b);
+  if (msB.startMs >= msA.startMs && msB.startMs < msA.endMs) {
+    return true;
+  }
+  return false;
+};
+
+const createTimeSlot = (slot: TimeSlot, min: number): TimeSlot => {
+  const ms = getMs(slot);
+  const durationInMs = min * 60000;
+  const newEnd = ms.startMs + durationInMs;
+  return {
+    starts: msToISO(ms.startMs),
+    ends: msToISO(newEnd),
+  };
+};
+
 // Function that takes a photographer and returns their earliest available time slot
 export const earliestSlot = (
   pg: Photographer,
   req: RequestedBooking
-): TimeSlot[] | undefined => {
+) => {
   const availability = pg.availabilities;
   const bookings = pg.bookings;
   const duration = req.booking.durationInMinutes;
@@ -45,27 +64,30 @@ export const earliestSlot = (
   });
 
   const bookingMs = bookings?.map((b) => getMs(b));
-  const availMs = availableTimeSlots?.map((a) => getMs(a));
-  const reqBookMs = duration * 60000;
-  const earliestAvailSlot = availMs.map((a) => {
-    const slot = bookingMs?.map((b) => {
-      // checking to see if the booking conflicts with the availability
-      const potentialSlotEnd = a.startMs + reqBookMs;
-      if (b.startMs >= a.startMs && b.startMs < potentialSlotEnd) {
-        console.log("Conflict");
-        return {
-          starts: msToISO(b.endMs),
-          ends: msToISO(b.endMs + reqBookMs),
-        };
-      }
-      return {
-        starts: msToISO(a.startMs),
-        ends: msToISO(a.startMs + reqBookMs),
-      };
-    });
-    return slot;
+  const earliestPossible = availableTimeSlots?.map((a) => {
+    let earliest = createTimeSlot(a, duration);
+    // Loop through bookings to see if any conflict with earliest
+    // If so, grab the booking that conflicts and create new timeSlot from end of booking
+    if (bookings) {
+        bookings.forEach((b) => {
+            if (checkForConflict(earliest, b)) {
+                const ms = getMs(b)
+                const newStart = msToISO(ms.endMs)
+                const newEnd = msToISO(ms.endMs + duration * 60000)
+                earliest = {
+                    starts: newStart, 
+                    ends: newEnd
+                }
+            }
+            return earliest; 
+        })
+    }
+    return earliest; 
   });
-  return earliestAvailSlot[0];
+
+  // check for conflict in availability
+
+  return earliestPossible;
 };
 
 const exampleBooking = {
@@ -78,6 +100,10 @@ const popularPg = {
   id: "1",
   name: "Otto Crawford",
   availabilities: [
+    {
+      starts: "2020-11-25T06:00:00.000Z",
+      ends: "2020-11-25T07:00:00.000Z",
+    },
     {
       starts: "2020-11-25T08:00:00.000Z",
       ends: "2020-11-25T16:00:00.000Z",
@@ -92,9 +118,19 @@ const popularPg = {
     {
       id: "1",
       starts: "2020-11-25T09:30:00.000Z",
-      ends: "2020-11-25T011:00:00.000Z",
+      ends: "2020-11-25T11:00:00.000Z",
     },
   ],
 };
 
-console.log(earliestSlot(popularPg, exampleBooking))
+const testA = {
+  starts: "2020-11-25T08:00:00.000Z",
+  ends: "2020-11-25T16:00:00.000Z",
+};
+
+const testB = {
+  starts: "2020-11-25T16:30:00.000Z",
+  ends: "2020-11-25T17:30:00.000Z",
+};
+
+console.log('Here', earliestSlot(popularPg, exampleBooking));

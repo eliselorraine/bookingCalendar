@@ -47,6 +47,10 @@ describe("the earliest available slot function", () => {
       name: "Otto Crawford",
       availabilities: [
         {
+          starts: "2020-11-25T06:00:00.000Z",
+          ends: "2020-11-25T07:00:00.000Z",
+        },
+        {
           starts: "2020-11-25T08:00:00.000Z",
           ends: "2020-11-25T16:00:00.000Z",
         },
@@ -60,7 +64,7 @@ describe("the earliest available slot function", () => {
         {
           id: "1",
           starts: "2020-11-25T09:30:00.000Z",
-          ends: "2020-11-25T011:00:00.000Z",
+          ends: "2020-11-25T11:00:00.000Z",
         },
       ],
     };
@@ -73,4 +77,8 @@ describe("the earliest available slot function", () => {
     const returned = earliestSlot(popularPg, exampleBooking);
     expect(returned).toStrictEqual(expected);
   });
+});
+
+describe("the check for conflict function", () => {
+  it("should return true if there is a conflict between the two time slots", () => {});
 });
