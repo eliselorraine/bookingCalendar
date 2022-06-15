@@ -60,7 +60,7 @@ export const earliestSlot = (pg: Photographer, req: RequestedBooking) => {
     return;
   });
 
-//   const bookingMs = bookings?.map((b) => getMs(b));
+  //   const bookingMs = bookings?.map((b) => getMs(b));
   const earliestPossible = availableTimeSlots?.map((a) => {
     let earliest: TimeSlot = createTimeSlot(a, duration);
     // Loop through bookings to see if any conflict with earliest
@@ -75,15 +75,19 @@ export const earliestSlot = (pg: Photographer, req: RequestedBooking) => {
             starts: newStart,
             ends: newEnd,
           };
-        } 
+        }
         return earliest;
       });
-    } else if (checkForConflict(earliest, a)) {
-      const test = "Checking if the condition works";
-      return test;
     }
     return earliest;
   });
+  const response = {
+    photographer: {
+      id: pg.id,
+      name: pg.name,
+    },
+    timeSlot: earliestPossible[0],
+  };
 
   // check for conflict in availability
 
@@ -127,6 +131,20 @@ const busyPg = {
   ],
 };
 
-
-
-console.log("Here", earliestSlot(busyPg, exampleBooking));
+console.log(
+  pgList.map((p: Photographer) => {
+    const earliest = earliestSlot(p, exampleBooking);
+    if (earliest.length >= 1) {
+      const response = {
+        photographer: {
+          id: p.id,
+          name: p.name,
+        },
+        timeSlot: earliest[0],
+      };
+      return response;
+    } else {
+      return;
+    }
+  })
+);

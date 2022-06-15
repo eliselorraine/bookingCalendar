@@ -15,7 +15,22 @@ app.get("/api/photographers", (_req: Request, res: Response) => {
 
 app.post("/api/photographers", (req: Request, res: Response) => {
   const reqBooking: RequestedBooking = req.body; 
-  return pgList.map((p: Photographer) => earliestSlot(p, reqBooking)); 
+  const suggestedTimes = pgList.map((p: Photographer) => {
+    const earliest = earliestSlot(p, reqBooking);
+    if (earliest.length >= 1) {
+      const response = {
+        photographer: {
+          id: p.id,
+          name: p.name,
+        },
+        timeSlot: earliest[0],
+      };
+      return response;
+    } else {
+      return;
+    }
+  })
+  return JSON.stringify(suggestedTimes); 
 })
 
 export default app;
