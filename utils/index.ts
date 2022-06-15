@@ -1,6 +1,4 @@
-import photographersData from "../photographers.json";
 import { TimeSlot, Photographer, RequestedBooking } from "../types";
-const pgList = photographersData.photographers;
 
 export const calculateTimeSlot = ({ starts, ends }: TimeSlot): number => {
   const startDate = new Date(starts);
@@ -45,12 +43,13 @@ export const createTimeSlot = (slot: TimeSlot, min: number): TimeSlot => {
   };
 };
 
-// Function that takes a photographer and returns their earliest available time slot
-export const earliestSlot = (pg: Photographer, req: RequestedBooking) => {
+// Function that takes a photographer and returns an array of available time slots in chronological order
+export const earliestSlot = (pg: Photographer, req: RequestedBooking): TimeSlot[] => {
   const availability = pg.availabilities;
   const bookings = pg.bookings;
   const duration = req.booking.durationInMinutes;
   let availableTimeSlots: TimeSlot[] = [];
+
   // remove time slots that aren't long enough
   availability?.forEach((a) => {
     const availMin = calculateTimeSlot(a);
@@ -60,7 +59,6 @@ export const earliestSlot = (pg: Photographer, req: RequestedBooking) => {
     return;
   });
 
-  //   const bookingMs = bookings?.map((b) => getMs(b));
   const earliestPossible = availableTimeSlots?.map((a) => {
     let earliest: TimeSlot = createTimeSlot(a, duration);
     // Loop through bookings to see if any conflict with earliest
@@ -81,70 +79,8 @@ export const earliestSlot = (pg: Photographer, req: RequestedBooking) => {
     }
     return earliest;
   });
-  const response = {
-    photographer: {
-      id: pg.id,
-      name: pg.name,
-    },
-    timeSlot: earliestPossible[0],
-  };
 
   // check for conflict in availability
 
   return earliestPossible;
 };
-
-const exampleBooking = {
-  booking: {
-    durationInMinutes: 90,
-  },
-};
-
-const busyPg = {
-  id: "1",
-  name: "Otto Crawford",
-  availabilities: [
-    {
-      starts: "2020-11-25T06:00:00.000Z",
-      ends: "2020-11-25T07:30:00.000Z",
-    },
-    {
-      starts: "2020-11-25T09:00:00.000Z",
-      ends: "2020-11-25T11:00:00.000Z",
-    },
-    {
-      starts: "2020-11-25T11:30:00.000Z",
-      ends: "2020-11-25T15:00:00.000Z",
-    },
-  ],
-  bookings: [
-    {
-      id: "1",
-      starts: "2020-11-25T07:00:00.000Z",
-      ends: "2020-11-25T07:30:00.000Z",
-    },
-    {
-      id: "1",
-      starts: "2020-11-25T10:00:00.000Z",
-      ends: "2020-11-25T11:00:00.000Z",
-    },
-  ],
-};
-
-console.log(
-  pgList.map((p: Photographer) => {
-    const earliest = earliestSlot(p, exampleBooking);
-    if (earliest.length >= 1) {
-      const response = {
-        photographer: {
-          id: p.id,
-          name: p.name,
-        },
-        timeSlot: earliest[0],
-      };
-      return response;
-    } else {
-      return;
-    }
-  })
-);
