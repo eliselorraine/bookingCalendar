@@ -127,4 +127,6 @@ const busyPg = {
   ],
 };
 
+
+
 console.log("Here", earliestSlot(busyPg, exampleBooking));

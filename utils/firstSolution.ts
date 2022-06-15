@@ -94,7 +94,3 @@ return adjustedAvailArr;
 const response = pgList.map((p) => pgAvail(p, exampleBooking)); 
 console.log(response)
 
-
-// Create a list of time slots equivalent to the duration of requested booking
-// Create a true availabiltiy value considering any bookings
-// Find the availability time slot that includes the booking

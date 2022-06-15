@@ -1,4 +1,4 @@
-import { earliestSlot, calculateTimeSlot, checkForConflict } from "./index";
+import { earliestSlot, checkForConflict } from "./index";
 
 const exampleBooking = {
   booking: {
