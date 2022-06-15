@@ -35,7 +35,7 @@ export const checkForConflict = (a: TimeSlot, b: TimeSlot): boolean => {
   return false;
 };
 
-const createTimeSlot = (slot: TimeSlot, min: number): TimeSlot => {
+export const createTimeSlot = (slot: TimeSlot, min: number): TimeSlot => {
   const ms = getMs(slot);
   const durationInMs = min * 60000;
   const newEnd = ms.startMs + durationInMs;
