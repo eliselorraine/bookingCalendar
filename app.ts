@@ -1,6 +1,6 @@
 import express from "express";
 import { Request, Response, Application } from "express";
-import { Photographer, RequestedBooking, TimeSlot } from "types";
+import { Photographer, RequestedBooking } from "types";
 import { earliestSlot } from "./utils/index";
 import photographersData from "./photographers.json";
 const pgList: Photographer[] = photographersData.photographers;
@@ -14,6 +14,7 @@ app.get("/api/photographers", (_req: Request, res: Response) => {
 });
 
 app.post("/api/photographers", (req: Request, res: Response) => {
+  // Needs error handling, try catch blocks and appropriate HTTP statuses
   const reqBooking: RequestedBooking = req.body; 
   const suggestedTimes = pgList.map((p: Photographer) => {
     const earliest = earliestSlot(p, reqBooking);

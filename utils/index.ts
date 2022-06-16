@@ -73,6 +73,7 @@ export const earliestSlot = (pg: Photographer, req: RequestedBooking): TimeSlot[
             starts: newStart,
             ends: newEnd,
           };
+          // need to check for new conflicts in availability
         }
         return earliest;
       });
@@ -80,7 +81,6 @@ export const earliestSlot = (pg: Photographer, req: RequestedBooking): TimeSlot[
     return earliest;
   });
 
-  // check for conflict in availability
 
   return earliestPossible;
 };
